@@ -102,7 +102,7 @@ function main() {
     }
 
     // parse prompt to prefix and text
-    const { sourceLanguageCode, targetLanguageCode, text } = parsePrompt(prompt, settings.sourceLanguageCode, settings.targetLanguageCode)
+    let { sourceLanguageCode, targetLanguageCode, text } = parsePrompt(prompt, settings.sourceLanguageCode, settings.targetLanguageCode)
     if (!text || text.trim().length === 0) {
       response.add({
         title: `${languageNamesMap[sourceLanguageCode][interfaceLanguage]} → ${languageNamesMap[targetLanguageCode][interfaceLanguage]}`,
@@ -123,8 +123,10 @@ function main() {
       if (service.languagesMap[sourceLanguageCode] === undefined) {
         return { result: messagesMap.unsupportedSourceLanguage[interfaceLanguage], name }
       }
-      if (service.languagesMap[targetLanguageCode] === undefined) {
-        return { result: messagesMap.unsupportedTargetLanguage[interfaceLanguage], name }
+      //  默认中译英 英译中
+      if (targetLanguageCode === 'auto' || service.languagesMap[targetLanguageCode] === undefined) {
+        const regExp = /[\u4E00-\u9FA5]/
+        targetLanguageCode = regExp.test(text) ? 'en' : 'zh'
       }
       const result = await service.translate(
         text,
